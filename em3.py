@@ -1,0 +1,230 @@
+# import requests
+# import xml.etree.ElementTree as ET
+# import pandas as pd
+# import os
+# from datetime import datetime
+
+# # URL and namespace
+# url = "https://data.titantvguide.com/api/schedule/1e6db3bcf5e743f883a4814f5d960fba"
+# ns = {"ttv": "http://www.titantv.com/"}
+
+# # Generate timestamped file name
+# timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+# output_dir = r"C:\Users\hgada\OneDrive - Hearst\Documents\Media_Star_XML\File Output"
+# os.makedirs(output_dir, exist_ok=True)
+# output_excel = os.path.join(output_dir, f"MediaStar_{timestamp}.xlsx")
+
+# def extract_show_data(show):
+#     """Flatten <Show> attributes and nested tags into a flat dictionary."""
+#     record = {}
+
+#     # Show attributes
+#     for attr, value in show.attrib.items():
+#         record[attr] = value
+
+#     # Child elements
+#     for child in show:
+#         tag = child.tag.split("}")[-1]
+
+#         # Handle Cast (repeating with role attribute)
+#         if tag == "Cast":
+#             role = child.attrib.get("role", "Unknown")
+#             record[f"Cast_{role}"] = record.get(f"Cast_{role}", []) + [child.text.strip()] if child.text else []
+
+#         # Handle Category (multiple with lang/type)
+#         elif tag == "Category":
+#             lang = child.attrib.get("lang", "unk")
+#             type_ = child.attrib.get("type", "unk")
+#             key = f"Category_{lang}_{type_}"
+#             record[key] = record.get(key, []) + [child.text.strip()] if child.text else []
+
+#         # Handle ParentalRating (region/dimension)
+#         elif tag == "ParentalRating":
+#             dim = child.attrib.get("ratingDimension", "Unknown")
+#             record[f"Parental_{dim}"] = child.attrib.get("ratingValue", "")
+
+#         # Handle simple child elements
+#         elif len(child) == 0 and child.text:
+#             record[tag] = child.text.strip()
+
+#         # Handle <Audio> and <Rating> attributes
+#         elif tag in {"Audio", "Rating", "ClosedCaption"}:
+#             for attr, val in child.attrib.items():
+#                 record[f"{tag}_{attr}"] = val
+
+#     # Convert list values to string for Excel export
+#     for key, value in record.items():
+#         if isinstance(value, list):
+#             record[key] = "; ".join(value)
+
+#     return record
+
+# # Request and parse XML
+# response = requests.get(url)
+# response.raise_for_status()
+# root = ET.fromstring(response.content)
+
+# channel_data = {}
+
+# # Process each Channel
+# for channel in root.findall(".//ttv:Channel", ns):
+#     channel_id = channel.attrib.get("channelId", "Unknown")
+#     callsign = channel.attrib.get("callsign", "Unknown")
+#     sheet_name = f"{channel_id}_{callsign}"[:31]  # Excel sheet name limit
+
+#     shows = channel.findall("ttv:Show", ns)
+#     rows = [extract_show_data(show) for show in shows]
+
+#     if rows:
+#         df = pd.DataFrame(rows)
+#         channel_data[sheet_name] = df
+
+# # Write all to Excel
+# with pd.ExcelWriter(output_excel, engine="openpyxl") as writer:
+#     for sheet_name, df in channel_data.items():
+#         df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+# print(f"\n✅ Excel saved at:\n{output_excel}")
+
+
+
+##with autosave:
+
+# import requests
+# import xml.etree.ElementTree as ET
+# import pandas as pd
+# import os
+# from datetime import datetime
+
+# # URL and namespace
+# url = "https://data.titantvguide.com/api/schedule/1e6db3bcf5e743f883a4814f5d960fba"
+# ns = {"ttv": "http://www.titantv.com/"}
+
+# # Output file setup (no AutoSave trigger since it's a local path)
+# timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+# output_dir = r"T:\MediaStar XML\File Output"
+# os.makedirs(output_dir, exist_ok=True)
+# output_excel = os.path.join(output_dir, f"MediaStar_{timestamp}.xlsx")
+
+# def extract_show_data(show):
+#     record = {}
+
+#     for attr, value in show.attrib.items():
+#         record[attr] = value
+
+#     for child in show:
+#         tag = child.tag.split("}")[-1]
+#         if tag == "Cast":
+#             role = child.attrib.get("role", "Unknown")
+#             record[f"Cast_{role}"] = record.get(f"Cast_{role}", []) + [child.text.strip()] if child.text else []
+#         elif tag == "Category":
+#             lang = child.attrib.get("lang", "unk")
+#             type_ = child.attrib.get("type", "unk")
+#             key = f"Category_{lang}_{type_}"
+#             record[key] = record.get(key, []) + [child.text.strip()] if child.text else []
+#         elif tag == "ParentalRating":
+#             dim = child.attrib.get("ratingDimension", "Unknown")
+#             record[f"Parental_{dim}"] = child.attrib.get("ratingValue", "")
+#         elif len(child) == 0 and child.text:
+#             record[tag] = child.text.strip()
+#         elif tag in {"Audio", "Rating", "ClosedCaption"}:
+#             for attr, val in child.attrib.items():
+#                 record[f"{tag}_{attr}"] = val
+
+#     for key, value in record.items():
+#         if isinstance(value, list):
+#             record[key] = "; ".join(value)
+
+#     return record
+
+# # Request and parse
+# response = requests.get(url)
+# response.raise_for_status()
+# root = ET.fromstring(response.content)
+
+# channel_data = {}
+
+# for channel in root.findall(".//ttv:Channel", ns):
+#     channel_id = channel.attrib.get("channelId", "Unknown")
+#     callsign = channel.attrib.get("callsign", "Unknown")
+#     sheet_name = f"{channel_id}_{callsign}"[:31]
+
+#     shows = channel.findall("ttv:Show", ns)
+#     rows = [extract_show_data(show) for show in shows]
+
+#     if rows:
+#         df = pd.DataFrame(rows)
+#         channel_data[sheet_name] = df
+
+# # Save the Excel file (AutoSave = OFF by Excel unless stored on cloud)
+# with pd.ExcelWriter(output_excel, engine="openpyxl") as writer:
+#     for sheet_name, df in channel_data.items():
+#         df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+# print(f"\n Excel file saved to:\n{output_excel}")
+
+
+
+##with only somerows:
+
+import requests
+import xml.etree.ElementTree as ET
+import pandas as pd
+import os
+from datetime import datetime
+
+# === Setup ===
+url = "https://data.titantvguide.com/api/schedule/1e6db3bcf5e743f883a4814f5d960fba"
+ns = {"ttv": "http://www.titantv.com/"}
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+output_dir = r"T:\MediaStar XML\File Output"
+os.makedirs(output_dir, exist_ok=True)
+output_excel = os.path.join(output_dir, f"MediaStar_{timestamp}.xlsx")
+
+# === Only keep these fields ===
+required_fields = {"adjustedstartTime", "adjustedEndTime", "eventId", "duration", "Title"}
+
+def extract_show_data(show):
+    record = {}
+
+    # Keep only selected attributes
+    for attr, value in show.attrib.items():
+        if attr in required_fields:
+            record[attr] = value
+
+    # Check children (only Title tag is needed from here)
+    for child in show:
+        tag = child.tag.split("}")[-1]
+        if tag == "Title" and child.text:
+            record["Title"] = child.text.strip()
+
+    return record
+
+# === Request and Parse ===
+response = requests.get(url)
+response.raise_for_status()
+root = ET.fromstring(response.content)
+
+channel_data = {}
+
+for channel in root.findall(".//ttv:Channel", ns):
+    channel_id = channel.attrib.get("channelId", "Unknown")
+    callsign = channel.attrib.get("callsign", "Unknown")
+    sheet_name = f"{channel_id}_{callsign}"[:31]
+
+    shows = channel.findall("ttv:Show", ns)
+    rows = [extract_show_data(show) for show in shows]
+
+    if rows:
+        df = pd.DataFrame(rows, columns=[
+            "eventId", "Title", "adjustedstartTime", "adjustedEndTime", "duration"
+        ])
+        channel_data[sheet_name] = df
+
+# === Save to Excel ===
+with pd.ExcelWriter(output_excel, engine="openpyxl") as writer:
+    for sheet_name, df in channel_data.items():
+        df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+print(f"\n Excel file saved to:\n{output_excel}")
